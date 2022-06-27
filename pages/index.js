@@ -1,4 +1,6 @@
 import Head from 'next/head';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/router';
 
 import prisma from 'lib/prisma';
 import { getJobs } from 'lib/data';
@@ -16,6 +18,13 @@ export const getServerSideProps = async () => {
 };
 
 export default function Home({ jobs }) {
+  const { data: session } = useSession();
+  const router = useRouter();
+
+  if (session && !session.user.name) {
+    router.push('/setup');
+  }
+
   return (
     <div className='mt-10'>
       <Head>
@@ -24,8 +33,19 @@ export default function Home({ jobs }) {
         <link rel='icon' href='/favicon.ico' />
       </Head>
 
-      <div className='text-center p-4 m-4'>
-        <h2 className='mb-10 text-4xl font-bold'>Find a job!</h2>
+      {!session && (
+        <div className='flex justify-center'>
+          <a
+            className='border px-8 py-2 mt-5 font-bold rounded-full bg-black text-white border-black '
+            href='/api/auth/signin'
+          >
+            login
+          </a>
+        </div>
+      )}
+
+      <div className='text-center p-4 mt-4'>
+        <h2 className='text-4xl mt-10 font-bold'>Find a job!</h2>
       </div>
 
       <Jobs jobs={jobs} />
