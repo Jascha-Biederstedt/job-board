@@ -1,4 +1,5 @@
 import Head from 'next/head';
+import Link from 'next/link';
 import { useSession, getSession } from 'next-auth/react';
 import { useRouter } from 'next/router';
 
@@ -62,7 +63,7 @@ export default function Home({ jobs, user }) {
 
       {session && (
         <div className='flex flex-col items-center'>
-          <p className='m-10 text-2xl font-normal text-center'>
+          <div className='m-10 text-2xl font-normal text-center'>
             Welcome, {user.name}
             {user.company && (
               <p className='mt-2'>
@@ -71,12 +72,14 @@ export default function Home({ jobs, user }) {
                 </span>
               </p>
             )}
-          </p>
+          </div>
           {user.company ? (
             <>
-              <button className='border px-8 py-2 mt-5 font-bold rounded-full bg-black text-white border-black '>
-                click here to post a new job
-              </button>
+              <Link href={`/new`}>
+                <button className='border px-8 py-2 mt-5 font-bold rounded-full bg-black text-white border-black '>
+                  click here to post a new job
+                </button>
+              </Link>
               <button className='border px-8 py-2 mt-5 font-bold rounded-full bg-black text-white border-black '>
                 see all the jobs you posted
               </button>
