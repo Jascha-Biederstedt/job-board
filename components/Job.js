@@ -1,7 +1,25 @@
 import React from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/router';
 
 const Job = ({ job, isDashboard }) => {
+  const router = useRouter();
+
+  const handleClick = async task => {
+    await fetch('/api/job', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        id: job.id,
+        task,
+      }),
+    });
+
+    router.reload(window.location.pathname);
+  };
+
   return (
     <div className='mb-4 mt-20 pl-16 pr-16'>
       <Link href={`/job/${job.id}`}>
@@ -11,14 +29,20 @@ const Job = ({ job, isDashboard }) => {
       <div className='mt-4'>
         {isDashboard && job.published && (
           <p className='mb-5'>
-            <span className='bg-black text-white uppercase text-sm p-2 mr-5'>
+            <span
+              onClick={() => handleClick('unpublish')}
+              className='bg-black text-white uppercase text-sm p-2 mr-5 cursor-pointer'
+            >
               ✅ Published
             </span>
           </p>
         )}
         {isDashboard && !job.published && (
           <p className='mb-5'>
-            <span className='bg-black text-white uppercase text-sm p-2 mr-5'>
+            <span
+              onClick={() => handleClick('publish')}
+              className='bg-black text-white uppercase text-sm p-2 mr-5 cursor-pointer'
+            >
               ❌ Unpublished
             </span>
           </p>

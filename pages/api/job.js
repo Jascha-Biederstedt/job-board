@@ -3,7 +3,7 @@ import { getSession } from 'next-auth/react';
 import prisma from 'lib/prisma';
 
 const handler = async (req, res) => {
-  if (req.method !== 'POST') {
+  if (req.method !== 'POST' && req.method !== 'PUT') {
     return res.status(501).end();
   }
 
@@ -36,21 +36,59 @@ const handler = async (req, res) => {
       return res
         .status(400)
         .json({ message: 'Required parameter salary missing' });
+
+    await prisma.job.create({
+      data: {
+        title: req.body.title,
+        description: req.body.description,
+        location: req.body.location,
+        salary: req.body.salary,
+        author: {
+          connect: { id: user.id },
+        },
+      },
+    });
+
+    res.status(200).end();
+    return;
   }
 
-  await prisma.job.create({
-    data: {
-      title: req.body.title,
-      description: req.body.description,
-      location: req.body.location,
-      salary: req.body.salary,
-      author: {
-        connect: { id: user.id },
+  if (req.method === 'PUT') {
+    const job = await prisma.job.findUnique({
+      where: {
+        id: parseInt(req.body.id),
       },
-    },
-  });
+    });
 
-  res.status(200).end();
+    if (job.authorId !== user.id) {
+      res.status(401).json({ message: 'Not authorized to edit' });
+    }
+
+    if (req.body.task === 'publish') {
+      await prisma.job.update({
+        where: {
+          id: parseInt(req.body.id),
+        },
+        data: {
+          published: true,
+        },
+      });
+    }
+
+    if (req.body.task === 'unpublish') {
+      await prisma.job.update({
+        where: {
+          id: parseInt(req.body.id),
+        },
+        data: {
+          published: false,
+        },
+      });
+    }
+
+    res.status(200).end();
+    return;
+  }
 };
 
 export default handler;
