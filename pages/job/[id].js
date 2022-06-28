@@ -1,21 +1,31 @@
 import React from 'react';
 import Link from 'next/link';
+import { getSession } from 'next-auth/react';
 
 import prisma from 'lib/prisma';
-import { getJob } from 'lib/data';
+import { getJob, alreadyApplied } from 'lib/data';
 
-export const getServerSideProps = async ({ params }) => {
-  let job = await getJob(prisma, params.id);
+export const getServerSideProps = async context => {
+  const session = await getSession(context);
+
+  let job = await getJob(prisma, context.params.id);
   job = JSON.parse(JSON.stringify(job));
+
+  const applied = await alreadyApplied(
+    prisma,
+    session.user.id,
+    context.params.id
+  );
 
   return {
     props: {
       job,
+      applied,
     },
   };
 };
 
-const JobDetailPage = ({ job }) => {
+const JobDetailPage = ({ job, applied }) => {
   return (
     <div className='flex flex-col w-3/4 mx-auto'>
       <div className='text-center p-4 m-4'>
@@ -53,13 +63,23 @@ const JobDetailPage = ({ job }) => {
         </div>
       </div>
 
-      <div className='mt-20 flex justify-center'>
-        <Link href={`/job/${job.id}/apply`}>
-          <button className='border px-8 py-2 mt-0 font-bold rounded-full bg-black text-white'>
-            Apply to this job
-          </button>
-        </Link>
-      </div>
+      {applied ? (
+        <div className='m-10 flex justify-center '>
+          <Link href={`/dashboard`}>
+            <button className=' border  px-8 py-2 mt-0  font-bold rounded-full bg-black text-white '>
+              You already applied!
+            </button>
+          </Link>
+        </div>
+      ) : (
+        <div className='m-10 flex justify-center '>
+          <Link href={`/job/${job.id}/apply`}>
+            <button className=' border  px-8 py-2 mt-0  font-bold rounded-full bg-black text-white '>
+              Apply to this job
+            </button>
+          </Link>
+        </div>
+      )}
     </div>
   );
 };
